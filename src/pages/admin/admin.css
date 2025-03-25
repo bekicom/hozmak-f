@@ -31,3 +31,46 @@
 .ant-tabs-content-holder {
   width: 100%;
 }
+
+.admin-container {
+  height: 100vh;
+}
+
+.ant-layout-sider {
+  background: #1a2a6c !important;
+}
+
+.ant-menu {
+  background: #1a2a6c !important;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.ant-menu-item {
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
+.ant-menu-item-selected {
+  background-color: #1890ff !important;
+  color: white !important;
+}
+
+.ant-menu-item:hover {
+  color: white !important;
+}
+
+.red-row {
+  background-color: #ffccc7 !important;
+}
+
+.yellow-row {
+  background-color: #fff7e6 !important;
+}
+
+.ant-layout-header {
+  background: #1a2a6c !important;
+  color: white !important;
+}
+
+.ant-layout-content {
+  background: #f0f2f5 !important;
+}

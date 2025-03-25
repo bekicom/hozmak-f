@@ -238,7 +238,7 @@ export default function StoreItem() {
     <div>
       <Modal open={quantityModal} footer={[]} title="Mahsulot sonini o'zgartirish" onCancel={() => setQuantityModal(false)}>
         <form style={{ paddingInline: "12px", width: "100%", display: "flex", flexDirection: "column", gap: "12px" }} className="modal_form" onSubmit={handleSubmit(submitModal)}>
-          <input style={{ width: "100%", paddingInline: "6px", height: "40px", borderRadius: "5px", border: "1px solid #ccc" }} type="number" {...register("quantity")} placeholder="Mahsulot soni" />
+          <input style={{ width: "40%", paddingInline: "6px", height: "40px", borderRadius: "5px", border: "1px solid #ccc" }} type="number" {...register("quantity")} placeholder="Mahsulot soni" />
           <button style={{ background: "#000", width: "100%", height: "40px", borderRadius: "5px", color: "#fff" }}>O'zgartirish</button>
         </form>
       </Modal>

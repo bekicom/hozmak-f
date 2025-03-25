@@ -8,14 +8,14 @@ import {
   Col,
   message,
   Select,
-  Tabs,
+  Layout,
+  Menu,
   Table,
   AutoComplete,
   Switch,
 } from "antd";
 import { Popconfirm } from "antd";
 import "antd/dist/reset.css";
-import { Option } from "antd/es/mentions";
 import "./admin.css";
 import {
   useCreateProductMutation,
@@ -31,59 +31,62 @@ import {
   EditOutlined,
   DeleteOutlined,
   HistoryOutlined,
+  ShopOutlined,
 } from "@ant-design/icons";
 import Adminlar from "../Adminlar/Adminlar";
 import Sotuv_tarix from "../sotuv-tarix/Sotuv_tarix";
 import Qarzdor from "../qarzdorlar/Qarzdor";
 import StoreItem from "../Store/StoreItem";
 import Xisobot from "../Xisobod/Xisobot";
-import EditProductModal from "../../components/modal/Editmodal"; // Tahrirlash modal komponenti
+import EditProductModal from "../../components/modal/Editmodal";
 import {
   useGetUsdRateQuery,
   useUpdateUsdRateMutation,
-} from "../../context/service/usd.service"; // USD kursi uchun xizmat
-import PrintBarcodeModal from "../../components/print/PrintBarcodeModal"; // Barcode modal komponenti
+} from "../../context/service/usd.service";
+import PrintBarcodeModal from "../../components/print/PrintBarcodeModal";
 import { useAddProductToStoreMutation } from "../../context/service/store.service";
-import PrintButton from "./PrintButton"; // PrintButton komponentini import qiling
+import PrintButton from "./PrintButton";
 import SalesStatistics from "../SalesStatistics/SalesStatistics";
 import { FaPrint } from "react-icons/fa";
 import { BiTransfer } from "react-icons/bi";
 
+const { Sider, Content, Header } = Layout;
+const { Option } = Select;
+
 export const Admin = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false); // Modal oynasi holatini boshqarish
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // Tahrirlash modal oynasi holatini boshqarish
-  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false); // Barcode chop etish modal oynasi holatini boshqarish
-  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false); // Dokonga o'tkazish modal oynasi holatini boshqarish
-  const [selectedProduct, setSelectedProduct] = useState(null); // Tanlangan mahsulot
-  const [form] = Form.useForm(); // Ant Design Form hook
-  const [createProduct] = useCreateProductMutation(); // Mahsulot yaratish uchun API chaqiruv hook
-  const { data, isLoading, refetch } = useGetAllProductsQuery(); // Barcha mahsulotlarni olish uchun API chaqiruv hook
-  const [barcode, setBarcode] = useState(""); // Shtrix kod holati
-  const [deleteProduct] = useDeleteProductMutation(); // Mahsulotni o'chirish uchun API chaqiruv hook
-  const [updateProduct] = useUpdateProductMutation(); // Mahsulotni yangilash uchun API chaqiruv hook
-  const [addProductToStore] = useAddProductToStoreMutation(); // Dokonga mahsulot qo'shish uchun API chaqiruv hook
-  const access = JSON.parse(localStorage.getItem("acsess")); // Foydalanuvchi huquqlarini olish
-  const [editingProduct, setEditingProduct] = useState(null); // Hozir tahrirlanayotgan mahsulot
-  const [totalProfit, setTotalProfit] = useState(0); // Umumiy foyda holati
-  const { data: usdRateData } = useGetUsdRateQuery(); // USD kursini olish
-  const [updateUsdRate] = useUpdateUsdRateMutation(); // USD kursini yangilash hook
-  const [usdRate, setUsdRate] = useState(usdRateData?.rate || 1); // USD kursi holati
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [form] = Form.useForm();
+  const [createProduct] = useCreateProductMutation();
+  const { data, isLoading, refetch } = useGetAllProductsQuery();
+  const [barcode, setBarcode] = useState("");
+  const [deleteProduct] = useDeleteProductMutation();
+  const [updateProduct] = useUpdateProductMutation();
+  const [addProductToStore] = useAddProductToStoreMutation();
+  const access = JSON.parse(localStorage.getItem("acsess"));
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [totalProfit, setTotalProfit] = useState(0);
+  const { data: usdRateData } = useGetUsdRateQuery();
+  const [updateUsdRate] = useUpdateUsdRateMutation();
+  const [usdRate, setUsdRate] = useState(usdRateData?.rate || 1);
+  const [selectedMenuKey, setSelectedMenuKey] = useState("1");
 
-  const [productNames, setProductNames] = useState([]); // Mahsulot nomlari
-  const [kimdan_kelgan, setkimdan_kelgan] = useState([]); // kimdan kelgan
-  const [models, setModels] = useState([]); // Modellar
-  const [searchText, setSearchText] = useState(""); // Qidiruv matni
-  const [stockFilter, setStockFilter] = useState("all"); // Filter holati
-
+  const [productNames, setProductNames] = useState([]);
+  const [kimdan_kelgan, setkimdan_kelgan] = useState([]);
+  const [models, setModels] = useState([]);
+  const [searchText, setSearchText] = useState("");
+  const [stockFilter, setStockFilter] = useState("all");
   const [purchaseSum, setPurchaseSum] = useState(true);
   const [sellSum, setSellSum] = useState(true);
+
   useEffect(() => {
     if (usdRateData) {
       setUsdRate(usdRateData.rate);
     }
   }, [usdRateData]);
-
-  // Mahsulotlar ma'lumotlarini o'zgartirganda umumiy foyda hisoblash
 
   useEffect(() => {
     if (data) {
@@ -94,17 +97,14 @@ export const Admin = () => {
       }, 0);
       setTotalProfit(profit);
 
-      // Mahsulot nomlarini olish
       const uniqueProductNames = [
         ...new Set(data.map((product) => product.product_name)),
       ];
       setProductNames(uniqueProductNames.sort());
 
-      // Modellarni olish
       const uniqueModels = [...new Set(data.map((product) => product.model))];
       setModels(uniqueModels);
 
-      // kimdan_kelgan
       const uniquekimdan_kelgan = [
         ...new Set(data.map((product) => product.kimdan_kelgan)),
       ];
@@ -112,7 +112,6 @@ export const Admin = () => {
     }
   }, [data]);
 
-  // Modal oynasi ochilganda shtrix kod yaratish
   useEffect(() => {
     if (isModalOpen) {
       const generateBarcode = () => {
@@ -123,34 +122,29 @@ export const Admin = () => {
     }
   }, [isModalOpen]);
 
-  // USD kursini yangilash
   const handleUsdRateChange = async () => {
     try {
-      await updateUsdRate(usdRate).unwrap(); // USD kursini raqamga aylantirish
+      await updateUsdRate(usdRate).unwrap();
       message.success("USD kursi muvaffaqiyatli yangilandi!");
-      refetch(); // Mahsulotlar ro'yxatini yangilash
+      refetch();
     } catch (error) {
       message.error("Xatolik yuz berdi. Iltimos qayta urinib ko'ring.");
     }
   };
 
-  // USD kursi o'zgarganda mahsulotlar ro'yxatini yangilash
   useEffect(() => {
-    refetch(); // Mahsulotlar ro'yxatini yangilash
+    refetch();
   }, [usdRate]);
 
-  // Modal oynasini ko'rsatish
   const showModal = () => {
     setIsModalOpen(true);
   };
 
-  // Modal oynasini yopish
   const handleCancel = () => {
     setIsModalOpen(false);
     form.resetFields();
   };
 
-  // Yangi mahsulot qo'shish
   const handleFinish = async (values) => {
     try {
       const productData = {
@@ -172,45 +166,37 @@ export const Admin = () => {
     }
   };
 
-  // Shtrix kodni chop qilish modalini ko'rsatish
   const showPrintModal = (barcode) => {
     setBarcode(barcode);
     setIsPrintModalOpen(true);
   };
 
-  // Shtrix kodni chop qilish modalini yopish
-  // Shtrix kodni chop qilish modalini yopish
   const handlePrintModalClose = () => {
     setIsPrintModalOpen(false);
   };
 
-  // Mahsulotni tahrirlash modal oynasini ko'rsatish
   const showEditModal = (product) => {
     setEditingProduct(product);
     setIsEditModalOpen(true);
   };
 
-  // Tahrirlash modal oynasini yopish
   const handleEditComplete = () => {
     setIsEditModalOpen(false);
     setEditingProduct(null);
-    refetch(); // Mahsulotlar ro'yxatini yangilash
+    refetch();
   };
 
-  // Dokonga o'tkazish modal oynasini ko'rsatish
   const showTransferModal = (product) => {
     setSelectedProduct(product);
     setIsTransferModalOpen(true);
   };
 
-  // Dokonga o'tkazish modal oynasini yopish
   const handleTransferCancel = () => {
     setIsTransferModalOpen(false);
     setSelectedProduct(null);
     form.resetFields();
   };
 
-  // Dokonga mahsulot qo'shish
   const handleAddToStore = async (values) => {
     try {
       await addProductToStore({
@@ -220,13 +206,12 @@ export const Admin = () => {
       message.success("Mahsulot do'konga muvaffaqiyatli o'tkazildi!");
       setIsTransferModalOpen(false);
       setSelectedProduct(null);
-      refetch(); // Mahsulotlar ro'yxatini yangilash
+      refetch();
     } catch (error) {
       message.error("Mahsulotni do'konga o'tkazishda xatolik yuz berdi");
     }
   };
 
-  // Mahsulotlar jadvali ustunlari
   const columns = [
     { title: "Mahsulot nomi", dataIndex: "product_name", key: "product_name" },
     { title: "Modeli", dataIndex: "model", key: "model" },
@@ -254,14 +239,14 @@ export const Admin = () => {
       render: (text, record) =>
         `${text.toFixed(2)}${
           record.purchase_currency === "usd" ? "$" : "so'm"
-        }`, // Narxni USD da ko'rsatish
+        }`,
     },
     {
       title: "Sotish narxi",
       dataIndex: "sell_price",
       key: "sell_price",
       render: (text, record) =>
-        `${text.toFixed(2)}${record.sell_currency === "usd" ? "$" : "so'm"}`, // Narxni USD da ko'rsatish
+        `${text.toFixed(2)}${record.sell_currency === "usd" ? "$" : "so'm"}`,
     },
     { title: "O'lchov birligi", dataIndex: "count_type", key: "count_type" },
     {
@@ -340,18 +325,16 @@ export const Admin = () => {
     },
   ];
 
-  // Mahsulotni o'chirish
   const handleDelete = async (id) => {
     try {
       await deleteProduct(id).unwrap();
       message.success("Mahsulot muvaffaqiyatli o'chirildi!");
-      refetch(); // Mahsulotlar ro'yxatini yangilash
+      refetch();
     } catch (error) {
       message.error("Xatolik yuz berdi. Iltimos qayta urinib ko'ring.");
     }
   };
 
-  // Conditional row styling based on stock quantity
   const rowClassName = (record) => {
     if (record.stock === 0) {
       return "red-row";
@@ -362,12 +345,10 @@ export const Admin = () => {
     }
   };
 
-  // Mahsulotlarni qidirish
   const handleSearch = (value) => {
     setSearchText(value);
   };
 
-  // Filterlarni qo'llash
   const handleFilterChange = (value) => {
     setStockFilter(value);
   };
@@ -385,192 +366,52 @@ export const Admin = () => {
         product.product_name.toLowerCase().includes(searchText.toLowerCase()) ||
         product.model.toLowerCase().includes(searchText.toLowerCase())
     )
-    .sort((a, b) => a.stock - b.stock); // Qolgan miqdorga ko'ra tartiblash
+    .sort((a, b) => a.stock - b.stock);
 
-  return (
-    <div className="admin-container">
-      <div className="admin-buttons">
-        <PrintButton /> {/* PrintButton komponentini joylashtirish */}
-      </div>
-      <Modal
-        title="Mahsulot yaratish"
-        open={isModalOpen}
-        onCancel={handleCancel}
-        footer={null}
-      >
-        <Form layout="vertical" form={form} onFinish={handleFinish}>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                label="Mahsulot nomi"
-                name="product_name"
-                rules={[{ required: true, message: "Majburiy maydon!" }]}
-              >
-                <AutoComplete
-                  options={productNames.map((name) => ({
-                    value: name,
-                  }))}
-                  placeholder="Mahsulot nomi"
-                  filterOption={(inputValue, option) =>
-                    option.value
-                      .toLowerCase()
-                      .indexOf(inputValue.toLowerCase()) !== -1
-                  }
-                >
-                  <Input placeholder="Mahsulot nomi" autoComplete="off" />
-                </AutoComplete>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                label="Model"
-                name="model"
-                rules={[{ required: true, message: "Majburiy maydon!" }]}
-              >
-                <AutoComplete
-                  options={models.map((model) => ({
-                    value: model,
-                  }))}
-                  placeholder="Model"
-                  filterOption={(inputValue, option) =>
-                    option.value
-                      .toLowerCase()
-                      .indexOf(inputValue.toLowerCase()) !== -1
-                  }
-                >
-                  <Input placeholder="Model" autoComplete="off" />
-                </AutoComplete>
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                label="Miqdor"
-                name="stock"
-                rules={[{ required: true, message: "Majburiy maydon!" }]}
-              >
-                <Input type="number" placeholder="Miqdor" autoComplete="off" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                label="O'lchov birligi"
-                name="count_type"
-                rules={[{ required: true, message: "Majburiy maydon!" }]}
-              >
-                <Select placeholder="O'lchov birligi" autoComplete="off">
-                  <Option value="dona">Dona</Option>
-                  <Option value="komplekt">Komplekt</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16} style={{ maxHeight: "65px" }}>
-            <Col span={12}>
-              <Form.Item
-                label="Sotib olish narxi"
-                name="purchase_price"
-                rules={[{ required: true, message: "Majburiy maydon!" }]}
-              >
-                <Input
-                  type="number"
-                  placeholder="Sotib olish narxi"
-                  autoComplete="off"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                label="Sotish narxi"
-                name="sell_price"
-                rules={[{ required: true, message: "Majburiy maydon!" }]}
-              >
-                <Input
-                  type="number"
-                  placeholder="Sotish narxi"
-                  autoComplete="off"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16} style={{ marginBottom: "12px" }}>
-            <Col style={{ display: "flex", gap: "6px" }} span={12}>
-              <p>USD</p>
-              <Switch
-                value={purchaseSum}
-                onChange={() => setPurchaseSum(!purchaseSum)}
-              />
-              <p>UZS</p>
-            </Col>
-            <Col style={{ display: "flex", gap: "6px" }} span={12}>
-              <p>USD</p>
-              <Switch value={sellSum} onChange={() => setSellSum(!sellSum)} />
-              <p>UZS</p>
-            </Col>
-          </Row>
-          <Row gutter={16}></Row>
-          <Row gutter={16}>
-            {/* <Col span={12}>
-              <Form.Item
-                label="Shtrix kod"
-                name="barcode"
-                initialValue={barcode}
-              >
-                <Input placeholder="Shtrix kod" autoComplete="off" disabled />
-              </Form.Item>
-            </Col> */}
-          </Row>
-          <Row gutter={16}>
-            <Col span={24}>
-              <Form.Item
-                label="Kimdan kelgan"
-                name="kimdan_kelgan"
-                rules={[{ required: true, message: "Majburiy maydon!" }]}
-              >
-                <Input placeholder="Kimdan kelgan" autoComplete="off" />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block>
-              Saqlash
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
+  // Menyu elementlarini birinchi rasmdagi nomlar bilan saqlaymiz
+  const menuItems = [
+    access?.skaladorlar && {
+      key: "1",
+      icon: <UserAddOutlined />,
+      label: "Sklad ",
+    },
+    access?.adminlar && {
+      key: "2",
+      icon: <UserAddOutlined />,
+      label: "Admin qo'shish",
+    },
+    access?.qarzdorlar && {
+      key: "3",
+      icon: <TeamOutlined />,
+      label: "Qarzdorlar",
+    },
+    access?.xisobot && {
+      key: "4",
+      icon: <BarChartOutlined />,
+      label: "Xisobot",
+    },
+    access?.sotuv_tarixi && {
+      key: "5",
+      icon: <HistoryOutlined />,
+      label: "Sotuv",
+    },
+    access?.SalesStatistics && {
+      key: "6",
+      icon: <BarChartOutlined />,
+      label: "statistika",
+    },
+    access?.dokon && {
+      key: "7",
+      icon: <ShopOutlined />,
+      label: "Dokon",
+    },
+  ].filter(Boolean);
 
-      <Modal
-        title="Mahsulotni dokonga o'tkazish"
-        open={isTransferModalOpen}
-        onCancel={handleTransferCancel}
-        footer={null}
-      >
-        <Form layout="vertical" form={form} onFinish={handleAddToStore}>
-          <Form.Item
-            label="Miqdor"
-            name="quantity"
-            rules={[{ required: true, message: "Majburiy maydon!" }]}
-          >
-            <Input type="number" placeholder="Miqdor" autoComplete="off" />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block>
-              Dokonga o'tkazish
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
-      <Tabs defaultActiveKey="1" style={{ flexGrow: 1, width: "100%" }}>
-        {access?.skaladorlar && (
-          <Tabs.TabPane
-            tab={
-              <Button type="primary" icon={<UserAddOutlined />}>
-                Sklad tavar qo'shish
-              </Button>
-            }
-            key="1"
-          >
+  const renderContent = () => {
+    switch (selectedMenuKey) {
+      case "1":
+        return (
+          <>
             <Button
               type="primary"
               onClick={showModal}
@@ -607,85 +448,236 @@ export const Admin = () => {
               rowClassName={rowClassName}
               scroll={{ x: "max-content" }}
             />
-          </Tabs.TabPane>
-        )}
-        {access?.adminlar && (
-          <Tabs.TabPane
-            tab={
-              <Button type="default" icon={<UserAddOutlined />}>
-                Admin qo'shish
-              </Button>
-            }
-            key="2"
-          >
-            <Adminlar />
-          </Tabs.TabPane>
-        )}
-        {access?.qarzdorlar && (
-          <Tabs.TabPane
-            tab={
-              <Button type="default" icon={<TeamOutlined />} danger>
-                Qarzdorlar
-              </Button>
-            }
-            key="3"
-          >
-            <Qarzdor />
-          </Tabs.TabPane>
-        )}
+          </>
+        );
+      case "2":
+        return <Adminlar />;
+      case "3":
+        return <Qarzdor />;
+      case "4":
+        return <Xisobot />;
+      case "5":
+        return <Sotuv_tarix />;
+      case "6":
+        return <SalesStatistics />;
+      case "7":
+        return <StoreItem />;
+      default:
+        return null;
+    }
+  };
 
-        {access?.xisobot && (
-          <Tabs.TabPane
-            tab={
-              <Button type="primary" icon={<BarChartOutlined />}>
-                Xisobot
-              </Button>
-            }
-            key="6"
-          >
-            <Xisobot />
-          </Tabs.TabPane>
-        )}
-        {access?.sotuv_tarixi && (
-          <Tabs.TabPane
-            tab={
-              <Button type="primary" icon={<HistoryOutlined />}>
-                Sotuv
-              </Button>
-            }
-            key="7"
-          >
-            <Sotuv_tarix />
-          </Tabs.TabPane>
-        )}
-        {access?.SalesStatistics && (
-          <Tabs.TabPane
-            tab={<Button type="primary">statistika</Button>}
-            key="8"
-          >
-            <SalesStatistics />
-          </Tabs.TabPane>
-        )}
-        {access?.dokon && (
-          <Tabs.TabPane tab={<Button type="primary">Dokon</Button>} key="9">
-            <StoreItem />
-          </Tabs.TabPane>
-        )}
-      </Tabs>
+  return (
+    <Layout style={{ minHeight: "100vh" }}>
+      <Sider width={200} style={{ background: "#1a2a6c" }}>
+        <div style={{ padding: "20px", textAlign: "center", color: "white" }}>
+          <h2>Logo</h2>
+        </div>
+        <Menu
+          mode="inline"
+          selectedKeys={[selectedMenuKey]}
+          onClick={(e) => setSelectedMenuKey(e.key)}
+          style={{ background: "#1a2a6c", color: "white", borderRight: 0 }}
+          items={menuItems}
+        />
+      </Sider>
+      <Layout>
+        <Header
+          style={{
+            background: "#1a2a6c",
+            padding: "0 20px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          
+      
+        </Header>
+        <Content style={{ padding: "24px", background: "#f0f2f5" }}>
+         
+          {renderContent()}
 
-      <EditProductModal
-        visible={isEditModalOpen}
-        onCancel={handleEditComplete}
-        product={editingProduct}
-        usdRate={usdRate}
-      />
+          <Modal
+            title="Mahsulot yaratish"
+            open={isModalOpen}
+            onCancel={handleCancel}
+            footer={null}
+          >
+            <Form layout="vertical" form={form} onFinish={handleFinish}>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Mahsulot nomi"
+                    name="product_name"
+                    rules={[{ required: true, message: "Majburiy maydon!" }]}
+                  >
+                    <AutoComplete
+                      options={productNames.map((name) => ({
+                        value: name,
+                      }))}
+                      placeholder="Mahsulot nomi"
+                      filterOption={(inputValue, option) =>
+                        option.value
+                          .toLowerCase()
+                          .indexOf(inputValue.toLowerCase()) !== -1
+                      }
+                    >
+                      <Input placeholder="Mahsulot nomi" autoComplete="off" />
+                    </AutoComplete>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Model"
+                    name="model"
+                    rules={[{ required: true, message: "Majburiy maydon!" }]}
+                  >
+                    <AutoComplete
+                      options={models.map((model) => ({
+                        value: model,
+                      }))}
+                      placeholder="Model"
+                      filterOption={(inputValue, option) =>
+                        option.value
+                          .toLowerCase()
+                          .indexOf(inputValue.toLowerCase()) !== -1
+                      }
+                    >
+                      <Input placeholder="Model" autoComplete="off" />
+                    </AutoComplete>
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Miqdor"
+                    name="stock"
+                    rules={[{ required: true, message: "Majburiy maydon!" }]}
+                  >
+                    <Input
+                      type="number"
+                      placeholder="Miqdor"
+                      autoComplete="off"
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="O'lchov birligi"
+                    name="count_type"
+                    rules={[{ required: true, message: "Majburiy maydon!" }]}
+                  >
+                    <Select placeholder="O'lchov birligi" autoComplete="off">
+                      <Option value="dona">Dona</Option>
+                      <Option value="komplekt">Komplekt</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Row gutter={16} style={{ maxHeight: "65px" }}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Sotib olish narxi"
+                    name="purchase_price"
+                    rules={[{ required: true, message: "Majburiy maydon!" }]}
+                  >
+                    <Input
+                      type="number"
+                      placeholder="Sotib olish narxi"
+                      autoComplete="off"
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Sotish narxi"
+                    name="sell_price"
+                    rules={[{ required: true, message: "Majburiy maydon!" }]}
+                  >
+                    <Input
+                      type="number"
+                      placeholder="Sotish narxi"
+                      autoComplete="off"
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Row gutter={16} style={{ marginBottom: "12px" }}>
+                <Col style={{ display: "flex", gap: "6px" }} span={12}>
+                  <p>USD</p>
+                  <Switch
+                    value={purchaseSum}
+                    onChange={() => setPurchaseSum(!purchaseSum)}
+                  />
+                  <p>UZS</p>
+                </Col>
+                <Col style={{ display: "flex", gap: "6px" }} span={12}>
+                  <p>USD</p>
+                  <Switch
+                    value={sellSum}
+                    onChange={() => setSellSum(!sellSum)}
+                  />
+                  <p>UZS</p>
+                </Col>
+              </Row>
+              <Row gutter={16}>
+                <Col span={24}>
+                  <Form.Item
+                    label="Kimdan kelgan"
+                    name="kimdan_kelgan"
+                    rules={[{ required: true, message: "Majburiy maydon!" }]}
+                  >
+                    <Input placeholder="Kimdan kelgan" autoComplete="off" />
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Form.Item>
+                <Button type="primary" htmlType="submit" block>
+                  Saqlash
+                </Button>
+              </Form.Item>
+            </Form>
+          </Modal>
 
-      <PrintBarcodeModal
-        visible={isPrintModalOpen}
-        onCancel={handlePrintModalClose}
-        barcode={barcode}
-      />
-    </div>
+          <Modal
+            title="Mahsulotni dokonga o'tkazish"
+            open={isTransferModalOpen}
+            onCancel={handleTransferCancel}
+            footer={null}
+          >
+            <Form layout="vertical" form={form} onFinish={handleAddToStore}>
+              <Form.Item
+                label="Miqdor"
+                name="quantity"
+                rules={[{ required: true, message: "Majburiy maydon!" }]}
+              >
+                <Input type="number" placeholder="Miqdor" autoComplete="off" />
+              </Form.Item>
+              <Form.Item>
+                <Button type="primary" htmlType="submit" block>
+                  Dokonga o'tkazish
+                </Button>
+              </Form.Item>
+            </Form>
+          </Modal>
+
+          <EditProductModal
+            visible={isEditModalOpen}
+            onCancel={handleEditComplete}
+            product={editingProduct}
+            usdRate={usdRate}
+          />
+
+          <PrintBarcodeModal
+            visible={isPrintModalOpen}
+            onCancel={handlePrintModalClose}
+            barcode={barcode}
+          />
+        </Content>
+      </Layout>
+    </Layout>
   );
 };
 

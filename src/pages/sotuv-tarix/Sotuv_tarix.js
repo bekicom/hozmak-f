@@ -236,28 +236,7 @@ export default function SotuvTarix() {
       </Row>
 
     
-      {/* UZS bo'yicha harajatlar */}
-      <Row gutter={16} style={{ marginBottom: 20 }}>
-        <Col span={8}>
-          <Statistic
-            title="Umumiy harajat"
-            value={`${formatNumber(totalExpenses)} so'm`}
-          />
-        </Col>
-        <Col span={8}>
-          <Statistic
-            title="Haftalik harajat"
-            value={`${formatNumber(weeklyExpenses)} so'm`}
-          />
-        </Col>
-        <Col span={8}>
-          <Statistic
-            title="Kunlik harajat"
-            value={`${formatNumber(dailyExpenses)} so'm`}
-          />
-        </Col>
-      </Row>
-
+  
       {/* UZS bo'yicha foyda */}
       <Row gutter={16} style={{ marginBottom: 20 }}>
         <Col span={8}>
