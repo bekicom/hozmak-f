@@ -286,7 +286,7 @@ export default function Kassa() {
               textAlign: "center",
             }}
           >
-            AUTO TUNING MAGICAR <br /> TUNING SHOP
+            DOKON <br /> 
           </h1>
           <div className="chek_item3">
             <h1
@@ -296,7 +296,7 @@ export default function Kassa() {
                 textAlign: "center",
               }}
             >
-              LOLA JAXON BOZORI A54
+              {/* LOLA JAXON BOZORI A54 */}
             </h1>
           </div>
           <div className="chek_item">
@@ -346,7 +346,7 @@ export default function Kassa() {
             }}
           >
             <span>Xaridingiz uchun raxmat!!!</span> <br />
-            <span>+998 91 293 95 95</span> <br />
+            <span>+998 00 000 00 00</span> <br />
           </p>
         </div>
       </Modal>
