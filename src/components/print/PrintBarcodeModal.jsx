@@ -1,15 +1,21 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Modal, Button } from "antd";
 import JsBarcode from "jsbarcode";
-import { useEffect, useRef } from "react";
 
 const PrintBarcodeModal = ({ visible, onCancel, barcode }) => {
   const barcodeRef = useRef(null);
 
   useEffect(() => {
-    if (visible) {
+    if (visible && barcode) {
       try {
-        JsBarcode(barcodeRef.current, barcode, { format: "CODE128" });
+        JsBarcode(barcodeRef.current, barcode, {
+          format: "CODE128",
+          width: 2, // Har bir chiziqning kengligi (pikselda)
+          height: 60, // Shtrix kodning balandligi (pikselda)
+          displayValue: true, // Shtrix kod ostida raqam ko'rsatish
+          fontSize: 14, // Raqamning shrift o'lchami
+          margin: 5, // Chegaralar
+        });
       } catch (error) {
         console.error("Error generating barcode:", error);
       }
@@ -20,18 +26,28 @@ const PrintBarcodeModal = ({ visible, onCancel, barcode }) => {
     console.log("Modal holati o'zgardi:", visible);
   }, [visible]);
 
-
   const handlePrint = () => {
     const printWindow = window.open("", "_blank"); // Yangi oyna ochish
-    const printContent = barcodeRef.current.parentElement.innerHTML;
+    const printContent = barcodeRef.current.outerHTML;
 
     printWindow.document.write(`
       <html>
         <head>
           <title>Shtrix kodni chop etish</title>
           <style>
-            body { text-align: center; font-family: Arial, sans-serif; }
-            svg { width: 100%; max-width: 300px; }
+            body { 
+              margin: 0; 
+              padding: 0; 
+              display: flex; 
+              justify-content: center; 
+              align-items: center; 
+              height: 100vh; 
+              font-family: Arial, sans-serif; 
+            }
+            svg { 
+              width: 30mm !important; /* 4 sm kenglik */
+              height: 30mm !important; /* 3 sm balandlik */
+            }
           </style>
         </head>
         <body>${printContent}</body>
@@ -42,7 +58,6 @@ const PrintBarcodeModal = ({ visible, onCancel, barcode }) => {
     printWindow.print();
     printWindow.close();
   };
-
 
   return (
     <Modal
@@ -58,7 +73,9 @@ const PrintBarcodeModal = ({ visible, onCancel, barcode }) => {
         </Button>,
       ]}
     >
-      <svg ref={barcodeRef}></svg>
+      <div style={{ textAlign: "center" }}>
+        <svg ref={barcodeRef}></svg>
+      </div>
     </Modal>
   );
 };
