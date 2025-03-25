@@ -368,12 +368,12 @@ export const Admin = () => {
     )
     .sort((a, b) => a.stock - b.stock);
 
-  // Menyu elementlarini birinchi rasmdagi nomlar bilan saqlaymiz
+  // Menyu elementlarini yangi tartibda joylashtiramiz: "Dokon" birinchi, "Sklad tavar qo'shish" oxirida
   const menuItems = [
-    access?.skaladorlar && {
+    access?.dokon && {
       key: "1",
-      icon: <UserAddOutlined />,
-      label: "Sklad ",
+      icon: <ShopOutlined />,
+      label: "Dokon",
     },
     access?.adminlar && {
       key: "2",
@@ -400,16 +400,28 @@ export const Admin = () => {
       icon: <BarChartOutlined />,
       label: "statistika",
     },
-    access?.dokon && {
+    access?.skaladorlar && {
       key: "7",
-      icon: <ShopOutlined />,
-      label: "Dokon",
+      icon: <UserAddOutlined />,
+      label: "Sklad tavar qo'shish",
     },
   ].filter(Boolean);
 
   const renderContent = () => {
     switch (selectedMenuKey) {
       case "1":
+        return <StoreItem />;
+      case "2":
+        return <Adminlar />;
+      case "3":
+        return <Qarzdor />;
+      case "4":
+        return <Xisobot />;
+      case "5":
+        return <Sotuv_tarix />;
+      case "6":
+        return <SalesStatistics />;
+      case "7":
         return (
           <>
             <Button
@@ -450,18 +462,6 @@ export const Admin = () => {
             />
           </>
         );
-      case "2":
-        return <Adminlar />;
-      case "3":
-        return <Qarzdor />;
-      case "4":
-        return <Xisobot />;
-      case "5":
-        return <Sotuv_tarix />;
-      case "6":
-        return <SalesStatistics />;
-      case "7":
-        return <StoreItem />;
       default:
         return null;
     }
@@ -491,11 +491,11 @@ export const Admin = () => {
             alignItems: "center",
           }}
         >
-          
-      
+         
+       
         </Header>
         <Content style={{ padding: "24px", background: "#f0f2f5" }}>
-         
+        
           {renderContent()}
 
           <Modal
@@ -572,6 +572,14 @@ export const Admin = () => {
                     <Select placeholder="O'lchov birligi" autoComplete="off">
                       <Option value="dona">Dona</Option>
                       <Option value="komplekt">Komplekt</Option>
+                      <Option value="metr">Metr</Option>
+                      <Option value="cm">Santimetr</Option>
+                      <Option value="litre">Litr</Option>
+                      <Option value="kg">Kilogramm</Option>
+                      <Option value="m2">Kvadrat metr</Option>
+                      <Option value="m3">Kub metr</Option>
+                      <Option value="gramm">Gramm</Option>
+                      <Option value="tonna">Tonna</Option>
                     </Select>
                   </Form.Item>
                 </Col>

@@ -115,13 +115,13 @@ export default function StoreItem() {
       title: "Olish narxi",
       dataIndex: "purchase_price",
       key: "purchase_price",
-      render: (_, record) => `${record.product_id.purchase_price.toFixed(2)}${record.product_id.purchase_currency === "usd" ? "$" : "so'm"}`, // Narxni USD da ko'rsatish
+      render: (_, record) => `${record.product_id.purchase_price.toFixed(0)}${record.product_id.purchase_currency === "usd" ? "$" : "so'm"}`, // Narxni USD da ko'rsatish
     },
     {
       title: "Sotish narxi",
       dataIndex: "sell_price",
       key: "sell_price",
-      render: (_, record) => `${record.product_id.sell_price.toFixed(2)}${record.product_id.sell_currency === "usd" ? "$" : "so'm"}`, // Narxni USD da ko'rsatish
+      render: (_, record) => `${record.product_id.sell_price.toFixed(0)}${record.product_id.sell_currency === "usd" ? "$" : "so'm"}`, // Narxni USD da ko'rsatish
     },
   
     {

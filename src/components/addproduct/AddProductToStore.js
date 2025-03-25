@@ -181,6 +181,13 @@ const AddProductToStore = ({ refetchProducts }) => {
                   <Option value="dona">Dona</Option>
                   <Option value="komplekt">Komplekt</Option>
                   <Option value="metr">Metr</Option>
+                  <Option value="cm">Santimetr</Option>
+                  <Option value="liter">Litr</Option>
+                  <Option value="kg">Kilogramm</Option>
+                  <Option value="m2">Kvadrat metr</Option>
+                  <Option value="m3">Kub metr</Option>
+                  <Option value="gram">Gramm</Option>
+                  <Option value="tonna">Tonna</Option>
                 </Select>
               </Form.Item>
             </Col>
