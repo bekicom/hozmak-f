@@ -31,7 +31,7 @@
   gap: 10px;
 }
 ::placeholder {
-  color: rgb(156, 151, 151) !important;
+  color: rgb(255, 255, 255) !important;
 }
 .ant-tabs-tab {
   color: white !important;
