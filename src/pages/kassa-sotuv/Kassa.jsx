@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   Input,
   Table,
@@ -60,6 +60,9 @@ export default function Kassa() {
   const { data: debtors, refetch } = useGetDebtorsQuery();
 
   const [location, setLocation] = useState(null);
+  const [lastKeyTime, setLastKeyTime] = useState(0); // To track typing speed
+  const [isBarcodeScan, setIsBarcodeScan] = useState(false); // To detect barcode scan
+
   const uniqueDebtors = debtors?.reduce((acc, debtor) => {
     if (!acc.find((d) => d.phone === debtor.phone)) {
       acc.push(debtor);
@@ -89,15 +92,53 @@ export default function Kassa() {
       )
     : [];
 
-  const handleSelectProduct = (product) => {
+  // Detect barcode scanner input based on typing speed and Enter key
+  const handleSearchInput = (e) => {
+    const currentTime = new Date().getTime();
+    const timeDiff = currentTime - lastKeyTime;
+
+    setSearchTerm(e.target.value);
+    setLastKeyTime(currentTime);
+
+    // If typing is very fast (less than 50ms between keypresses), it's likely a barcode scanner
+    if (timeDiff < 50) {
+      setIsBarcodeScan(true);
+    } else {
+      setIsBarcodeScan(false);
+    }
+  };
+
+  // Handle Enter key press or barcode scan completion
+  const handleSearchKeyPress = (e) => {
+    if (e.key === "Enter" && isBarcodeScan) {
+      const product = products?.find(
+        (p) => p.barcode.toLowerCase() === searchTerm.toLowerCase()
+      );
+      if (product) {
+        handleSelectProduct(product, true); // Pass true to indicate barcode scan
+      } else {
+        message.error("Mahsulot topilmadi!");
+        setSearchTerm("");
+      }
+    }
+  };
+
+  const handleSelectProduct = (product, isBarcode = false) => {
     const exists = selectedProducts.find((item) => item._id === product._id);
     if (!exists) {
-      // Check if stock in "skalad" is 0
-      if (product.stock === 0) {
-        message.error("Bu tavar omborda tugagan!");
+      // Find the product's stock in "dokon"
+      const storeProduct = storeProducts.find(
+        (p) => p.product_id?._id === product._id
+      );
+      const dokonStock = storeProduct ? storeProduct.quantity : 0;
+
+      // Check if stock in both "skalad" and "dokon" is 0
+      if (product.stock === 0 && dokonStock === 0) {
+        message.error("Bu mahsulot mavjud emas!");
         return;
       }
-      setSelectedProducts([
+
+      const updatedProducts = [
         ...selectedProducts,
         {
           ...product,
@@ -107,10 +148,31 @@ export default function Kassa() {
               ? product.sell_price * usdRateData.rate
               : product.sell_price,
         },
-      ]);
-      setSearchTerm("");
+      ];
+      setSelectedProducts(updatedProducts);
+
+      // Clear search term if this was a barcode scan
+      if (isBarcode) {
+        setSearchTerm("");
+        setIsBarcodeScan(false);
+      }
     } else {
-      message.info("Bu mahsulot allaqachon tanlangan");
+      // If the product already exists, increment its quantity
+      const updatedProducts = selectedProducts.map((item) => {
+        if (item._id === product._id) {
+          return { ...item, quantity: item.quantity + 1 };
+        }
+        return item;
+      });
+      setSelectedProducts(updatedProducts);
+
+      // Clear search term if this was a barcode scan
+      if (isBarcode) {
+        setSearchTerm("");
+        setIsBarcodeScan(false);
+      } else {
+        message.info("Bu mahsulot allaqachon tanlangan");
+      }
     }
   };
 
@@ -453,7 +515,8 @@ export default function Kassa() {
         <Input
           placeholder="shtrix kodi, mahsulot nomi yoki modeli bo'yicha qidirish..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={handleSearchInput}
+          onKeyPress={handleSearchKeyPress}
           style={{ marginBottom: 20, width: "40%" }}
           size="large"
         />
@@ -510,7 +573,7 @@ export default function Kassa() {
               render: (_, record) => (
                 <Button
                   type="primary"
-                  onClick={() => handleSelectProduct(record)}
+                  onClick={() => handleSelectProduct(record, false)}
                 >
                   Tanlash
                 </Button>
