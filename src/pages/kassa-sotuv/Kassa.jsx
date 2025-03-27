@@ -92,6 +92,11 @@ export default function Kassa() {
   const handleSelectProduct = (product) => {
     const exists = selectedProducts.find((item) => item._id === product._id);
     if (!exists) {
+      // Check if stock in "skalad" is 0
+      if (product.stock === 0) {
+        message.error("Bu tavar omborda tugagan!");
+        return;
+      }
       setSelectedProducts([
         ...selectedProducts,
         {
@@ -149,9 +154,15 @@ export default function Kassa() {
             : product.sell_price;
 
         if (location === "skalad") {
+          if (product.stock === 0) {
+            message.error(
+              `${product.product_name} mahsuloti skladada tugagan!`
+            );
+            return;
+          }
           if (product.stock < product.quantity) {
             message.error(
-              `${product.product_name} mahsuloti skaladda yetarli emas!`
+              `${product.product_name} mahsuloti skladada yetarli emas!`
             );
             return;
           }
@@ -286,7 +297,7 @@ export default function Kassa() {
               textAlign: "center",
             }}
           >
-            DOKON <br /> 
+            DOKON <br />
           </h1>
           <div className="chek_item3">
             <h1
@@ -675,4 +686,3 @@ export default function Kassa() {
     </div>
   );
 }
-//
