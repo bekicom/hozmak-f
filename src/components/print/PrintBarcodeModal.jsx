@@ -2,7 +2,13 @@ import React, { useEffect, useRef } from "react";
 import { Modal, Button } from "antd";
 import JsBarcode from "jsbarcode";
 
-const PrintBarcodeModal = ({ visible, onCancel, barcode }) => {
+const PrintBarcodeModal = ({
+  visible,
+  onCancel,
+  barcode,
+  productName,
+  price,
+}) => {
   const barcodeRef = useRef(null);
 
   useEffect(() => {
@@ -33,7 +39,6 @@ const PrintBarcodeModal = ({ visible, onCancel, barcode }) => {
     printWindow.document.write(`
       <html>
         <head>
-          <title>Shtrix kodni chop etish</title>
           <style>
             body { 
               margin: 0; 
@@ -41,16 +46,41 @@ const PrintBarcodeModal = ({ visible, onCancel, barcode }) => {
               display: flex; 
               justify-content: center; 
               align-items: center; 
+              flex-direction: column; 
               height: 100vh; 
               font-family: Arial, sans-serif; 
+              text-align: center;
             }
             svg { 
-              width: 30mm !important; /* 4 sm kenglik */
-              height: 30mm !important; /* 3 sm balandlik */
+              width: 30mm !important; /* 3 sm kenglik */
+              height: 20mm !important; /* 2 sm balandlik */
+            }
+            .product-info {
+              margin-top: 5px;
+              font-size: 12px;
+              display: flex;
+              justify-content: center;
+              gap: 10px; /* Bo'shliq product name va price o'rtasida */
+            }
+            .product-name {
+              font-weight: bold;
+            }
+            .product-price {
+              font-weight: normal;
             }
           </style>
         </head>
-        <body>${printContent}</body>
+        <body>
+          ${printContent}
+          <div class="product-info">
+            <div class="product-name">${
+              productName || "Noma'lum mahsulot"
+            }</div>
+            <div class="product-price">${
+              price ? price.toLocaleString() + " so'm" : "Narx mavjud emas"
+            }</div>
+          </div>
+        </body>
       </html>
     `);
 
@@ -61,7 +91,7 @@ const PrintBarcodeModal = ({ visible, onCancel, barcode }) => {
 
   return (
     <Modal
-      title="Shtrix kodni chop etish"
+      title=""
       open={visible}
       onCancel={onCancel}
       footer={[
@@ -75,6 +105,22 @@ const PrintBarcodeModal = ({ visible, onCancel, barcode }) => {
     >
       <div style={{ textAlign: "center" }}>
         <svg ref={barcodeRef}></svg>
+        <div
+          style={{
+            marginTop: 5,
+            fontSize: 12,
+            display: "flex",
+            justifyContent: "center",
+            gap: 10, // Bo'shliq product name va price o'rtasida
+          }}
+        >
+          <div style={{ fontWeight: "bold" }}>
+            {productName || "Noma'lum mahsulot"}
+          </div>
+          <div>
+            {price ? price.toLocaleString() + " so'm" : "Narx mavjud emas"}
+          </div>
+        </div>
       </div>
     </Modal>
   );

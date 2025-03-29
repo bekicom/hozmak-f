@@ -60,8 +60,8 @@ export default function Kassa() {
   const { data: debtors, refetch } = useGetDebtorsQuery();
 
   const [location, setLocation] = useState(null);
-  const [lastKeyTime, setLastKeyTime] = useState(0); // To track typing speed
-  const [isBarcodeScan, setIsBarcodeScan] = useState(false); // To detect barcode scan
+  const [lastKeyTime, setLastKeyTime] = useState(0);
+  const [isBarcodeScan, setIsBarcodeScan] = useState(false);
 
   const uniqueDebtors = debtors?.reduce((acc, debtor) => {
     if (!acc.find((d) => d.phone === debtor.phone)) {
@@ -85,14 +85,13 @@ export default function Kassa() {
         (product) =>
           product.product_name
             .toLowerCase()
-            .includes(searchTerm.toLowerCase()) || // Поиск по имени продукта
-          product.barcode.toLowerCase().includes(searchTerm.toLowerCase()) || // Поиск по штрих-коду
+            .includes(searchTerm.toLowerCase()) ||
+          product.barcode.toLowerCase().includes(searchTerm.toLowerCase()) ||
           (product.model &&
-            product.model.toLowerCase().includes(searchTerm.toLowerCase())) // Поиск по модели (если есть)
+            product.model.toLowerCase().includes(searchTerm.toLowerCase()))
       )
     : [];
 
-  // Detect barcode scanner input based on typing speed and Enter key
   const handleSearchInput = (e) => {
     const currentTime = new Date().getTime();
     const timeDiff = currentTime - lastKeyTime;
@@ -100,7 +99,6 @@ export default function Kassa() {
     setSearchTerm(e.target.value);
     setLastKeyTime(currentTime);
 
-    // If typing is very fast (less than 50ms between keypresses), it's likely a barcode scanner
     if (timeDiff < 50) {
       setIsBarcodeScan(true);
     } else {
@@ -108,14 +106,13 @@ export default function Kassa() {
     }
   };
 
-  // Handle Enter key press or barcode scan completion
   const handleSearchKeyPress = (e) => {
     if (e.key === "Enter" && isBarcodeScan) {
       const product = products?.find(
         (p) => p.barcode.toLowerCase() === searchTerm.toLowerCase()
       );
       if (product) {
-        handleSelectProduct(product, true); // Pass true to indicate barcode scan
+        handleSelectProduct(product, true);
       } else {
         message.error("Mahsulot topilmadi!");
         setSearchTerm("");
@@ -126,13 +123,11 @@ export default function Kassa() {
   const handleSelectProduct = (product, isBarcode = false) => {
     const exists = selectedProducts.find((item) => item._id === product._id);
     if (!exists) {
-      // Find the product's stock in "dokon"
       const storeProduct = storeProducts.find(
         (p) => p.product_id?._id === product._id
       );
       const dokonStock = storeProduct ? storeProduct.quantity : 0;
 
-      // Check if stock in both "skalad" and "dokon" is 0
       if (product.stock === 0 && dokonStock === 0) {
         message.error("Bu mahsulot mavjud emas!");
         return;
@@ -142,7 +137,7 @@ export default function Kassa() {
         ...selectedProducts,
         {
           ...product,
-          quantity: 1,
+          quantity: product.count_type === "kg" ? 0 : 1, // Default to 0 for kg, 1 for others
           sell_price:
             product.sell_currency === "usd"
               ? product.sell_price * usdRateData.rate
@@ -151,22 +146,19 @@ export default function Kassa() {
       ];
       setSelectedProducts(updatedProducts);
 
-      // Clear search term if this was a barcode scan
       if (isBarcode) {
         setSearchTerm("");
         setIsBarcodeScan(false);
       }
     } else {
-      // If the product already exists, increment its quantity
       const updatedProducts = selectedProducts.map((item) => {
-        if (item._id === product._id) {
+        if (item._id === product._id && item.count_type !== "kg") {
           return { ...item, quantity: item.quantity + 1 };
         }
         return item;
       });
       setSelectedProducts(updatedProducts);
 
-      // Clear search term if this was a barcode scan
       if (isBarcode) {
         setSearchTerm("");
         setIsBarcodeScan(false);
@@ -183,11 +175,16 @@ export default function Kassa() {
     setSelectedProducts(updatedProducts);
   };
 
-  const handleQuantityChange = (productId, increment) => {
+  const handleQuantityChange = (productId, value) => {
     const updatedProducts = selectedProducts.map((item) => {
       if (item._id === productId) {
-        const newQuantity = item.quantity + increment;
-        return { ...item, quantity: newQuantity > 0 ? newQuantity : 1 };
+        if (item.count_type === "kg") {
+          const newQuantity = parseFloat(value) || 0; // Parse input as float, default to 0 if invalid
+          return { ...item, quantity: newQuantity > 0 ? newQuantity : 0 };
+        } else {
+          const newQuantity = item.quantity + value;
+          return { ...item, quantity: newQuantity > 0 ? newQuantity : 1 };
+        }
       }
       return item;
     });
@@ -202,7 +199,7 @@ export default function Kassa() {
     setIsModalVisible(false);
   };
 
-  const [receiptProducts, setReceiptProducts] = useState([]); // Копия для чека
+  const [receiptProducts, setReceiptProducts] = useState([]);
 
   const handleSellProducts = async () => {
     setChekModal(true);
@@ -228,7 +225,7 @@ export default function Kassa() {
             );
             return;
           }
-          const newStock = product.stock - product.quantity;
+          const newStock = product.stock - product.quantity; // Works with float quantities
           await updateProduct({ id: product._id, stock: newStock }).unwrap();
         } else if (location === "dokon") {
           const storeProduct = storeProducts.find(
@@ -246,7 +243,7 @@ export default function Kassa() {
             );
             return;
           }
-          const newStoreStock = storeProduct.quantity - product.quantity;
+          const newStoreStock = storeProduct.quantity - product.quantity; // Works with float quantities
           await sellProductFromStore({
             product_id: storeProduct.product_id._id,
             quantity: product.quantity,
@@ -275,11 +272,11 @@ export default function Kassa() {
             product_id: product._id,
             product_name: product.product_name,
             sell_price: sellPrice,
-            buy_price: product.purchase_price, // Xarid narxi
+            buy_price: product.purchase_price,
             quantity: product.quantity,
             total_price: sellPrice * product.quantity,
             payment_method: paymentMethod,
-            usd_rate: usdRateData.rate, // Sotuv vaqtidagi USD kursini saqlaymiz
+            usd_rate: usdRateData.rate,
           };
           await recordSale(sale).unwrap();
         }
@@ -303,24 +300,19 @@ export default function Kassa() {
   const handleSellPriceChange = (productId, newPrice) => {
     const updatedProducts = selectedProducts.map((item) => {
       if (item._id === productId) {
-        return {
-          ...item,
-          sell_price: newPrice,
-        };
+        return { ...item, sell_price: parseFloat(newPrice) || 0 };
       }
       return item;
     });
     setSelectedProducts(updatedProducts);
   };
 
-  // AutoComplete uchun options
   const debtorOptions = uniqueDebtors?.map((debtor) => ({
     value: debtor.name,
     label: `${debtor.name} (${debtor.phone})`,
     debtor,
   }));
 
-  // AutoComplete dan tanlangan qarzdorning ma'lumotlarini o'rnatish
   const handleDebtorSelect = (value, option) => {
     setDebtorName(option.debtor.name);
     setDebtorPhone(option.debtor.phone);
@@ -555,11 +547,10 @@ export default function Kassa() {
               title: "Dokon Miqdori",
               dataIndex: "quantity",
               key: "quantity",
-              render: (_, record) => {
-                return storeProducts.find(
+              render: (_, record) =>
+                storeProducts.find(
                   (product) => product.product_id?._id === record._id
-                )?.quantity;
-              },
+                )?.quantity || 0,
             },
             { title: "Shtrix kod", dataIndex: "barcode", key: "barcode" },
             {
@@ -596,11 +587,7 @@ export default function Kassa() {
                   dataIndex: "product_name",
                   key: "product_name",
                 },
-                {
-                  title: "Model",
-                  dataIndex: ["model"],
-                  key: "model",
-                },
+                { title: "Model", dataIndex: "model", key: "model" },
                 {
                   title: "Tan narxi",
                   dataIndex: "purchase_price",
@@ -614,6 +601,8 @@ export default function Kassa() {
                       onChange={(e) =>
                         handleSellPriceChange(record._id, e.target.value)
                       }
+                      type="number"
+                      step="0.01"
                     />
                   ),
                 },
@@ -623,33 +612,45 @@ export default function Kassa() {
                   title: "Dokondagi miqdor",
                   dataIndex: "quantity",
                   key: "quantity",
-                  render: (_, record) => {
-                    return storeProducts.find(
+                  render: (_, record) =>
+                    storeProducts.find(
                       (product) => product.product_id?._id === record._id
-                    )?.quantity;
-                  },
+                    )?.quantity || 0,
                 },
                 {
                   title: "Soni",
                   key: "quantity",
-                  render: (_, record) => (
-                    <div>
-                      <Button
-                        onClick={() => handleQuantityChange(record._id, -1)}
-                        disabled={record.quantity <= 1}
-                      >
-                        -
-                      </Button>
-                      <span style={{ margin: "0 10px" }}>
-                        {record.quantity}
-                      </span>
-                      <Button
-                        onClick={() => handleQuantityChange(record._id, 1)}
-                      >
-                        +
-                      </Button>
-                    </div>
-                  ),
+                  render: (_, record) =>
+                    record.count_type === "kg" ? (
+                      <AntdInput
+                        value={record.quantity}
+                        onChange={(e) =>
+                          handleQuantityChange(record._id, e.target.value)
+                        }
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        placeholder="kg (e.g., 1.5)"
+                        style={{ width: "100px" }}
+                      />
+                    ) : (
+                      <div>
+                        <Button
+                          onClick={() => handleQuantityChange(record._id, -1)}
+                          disabled={record.quantity <= 1}
+                        >
+                          -
+                        </Button>
+                        <span style={{ margin: "0 10px" }}>
+                          {record.quantity}
+                        </span>
+                        <Button
+                          onClick={() => handleQuantityChange(record._id, 1)}
+                        >
+                          +
+                        </Button>
+                      </div>
+                    ),
                 },
                 {
                   title: "Harakatlar",

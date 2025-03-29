@@ -73,27 +73,33 @@ const AddProductToStore = ({ refetchProducts }) => {
     setIsModalOpen(false);
     form.resetFields();
   };
-
-  const handleFinish = async (values) => {
-    try {
-      const productData = {
-        ...values,
-        barcode,
-        purchase_currency: purchaseSum ? "uzs" : "usd",
-        sell_currency: sellSum ? "uzs" : "usd",
-        storeProduct: true, // Assuming this is for adding to store
-      };
-
-      const createdProduct = await createProduct(productData).unwrap();
-
-      message.success("Mahsulot muvaffaqiyatli qo'shildi!");
-      setIsModalOpen(false);
-      form.resetFields();
-      refetchProducts();
-    } catch (error) {
-      message.error("Xato yuz berdi. Iltimos qayta urinib ko'ring.");
+const handleFinish = async (values) => {
+  try {
+    let stockAmount = parseFloat(values.stock); // Miqdorni son sifatida olish
+    if (values.count_type === "gram") {
+      stockAmount = stockAmount / 1000; // Grammni kg ga aylantirish
     }
-  };
+
+    const productData = {
+      ...values,
+      stock: stockAmount, // Hisoblangan yangi miqdor
+      barcode,
+      purchase_currency: purchaseSum ? "uzs" : "usd",
+      sell_currency: sellSum ? "uzs" : "usd",
+      storeProduct: true,
+    };
+
+    const createdProduct = await createProduct(productData).unwrap();
+
+    message.success("Mahsulot muvaffaqiyatli qo'shildi!");
+    setIsModalOpen(false);
+    form.resetFields();
+    refetchProducts();
+  } catch (error) {
+    message.error("Xato yuz berdi. Iltimos qayta urinib ko'ring.");
+  }
+};
+
 
   return (
     <div>
