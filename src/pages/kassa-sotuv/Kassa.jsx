@@ -32,7 +32,7 @@ import Xarajatlar from "../Xarajatlar/Xarajatlar";
 import { useReactToPrint } from "react-to-print";
 import moment from "moment-timezone";
 import Vazvrat from "../vazvrat/Vazvrat";
-import bir from "../../assets/telegram_qr.png";
+import bir from "../../assets/qr_telegram_ilyosxon (1).png";
 import SotuvTarix from "../sotuv-tarix/Sotuv_tarix";
 const { Option } = Select;
 
@@ -59,7 +59,6 @@ export default function Kassa() {
   const [createDebtor] = useCreateDebtorMutation();
   const { data: debtors, refetch } = useGetDebtorsQuery();
 
-  const [location, setLocation] = useState(null);
   const [lastKeyTime, setLastKeyTime] = useState(0);
   const [isBarcodeScan, setIsBarcodeScan] = useState(false);
 
@@ -128,8 +127,8 @@ export default function Kassa() {
       );
       const dokonStock = storeProduct ? storeProduct.quantity : 0;
 
-      if (product.stock === 0 && dokonStock === 0) {
-        message.error("Bu mahsulot mavjud emas!");
+      if (dokonStock === 0) {
+        message.error("Bu mahsulot dokonda mavjud emas!");
         return;
       }
 
@@ -137,7 +136,7 @@ export default function Kassa() {
         ...selectedProducts,
         {
           ...product,
-          quantity: product.count_type === "kg" ? 0 : 1, // Default to 0 for kg, 1 for others
+          quantity: product.count_type === "kg" ? 0 : 1,
           sell_price:
             product.sell_currency === "usd"
               ? product.sell_price * usdRateData.rate
@@ -179,7 +178,7 @@ export default function Kassa() {
     const updatedProducts = selectedProducts.map((item) => {
       if (item._id === productId) {
         if (item.count_type === "kg") {
-          const newQuantity = parseFloat(value) || 0; // Parse input as float, default to 0 if invalid
+          const newQuantity = parseFloat(value) || 0;
           return { ...item, quantity: newQuantity > 0 ? newQuantity : 0 };
         } else {
           const newQuantity = item.quantity + value;
@@ -212,43 +211,26 @@ export default function Kassa() {
             ? product.sell_price * usdRateData.rate
             : product.sell_price;
 
-        if (location === "skalad") {
-          if (product.stock === 0) {
-            message.error(
-              `${product.product_name} mahsuloti skladada tugagan!`
-            );
-            return;
-          }
-          if (product.stock < product.quantity) {
-            message.error(
-              `${product.product_name} mahsuloti skladada yetarli emas!`
-            );
-            return;
-          }
-          const newStock = product.stock - product.quantity; // Works with float quantities
-          await updateProduct({ id: product._id, stock: newStock }).unwrap();
-        } else if (location === "dokon") {
-          const storeProduct = storeProducts.find(
-            (p) => p.product_id?._id === product._id
+        const storeProduct = storeProducts.find(
+          (p) => p.product_id?._id === product._id
+        );
+        if (!storeProduct) {
+          message.error(
+            `${product.product_name} mahsuloti dokonda mavjud emas!`
           );
-          if (!storeProduct) {
-            message.error(
-              `${product.product_name} mahsuloti dokonda mavjud emas!`
-            );
-            return;
-          }
-          if (storeProduct.quantity < product.quantity) {
-            message.error(
-              `${product.product_name} mahsuloti dokonda yetarli emas!`
-            );
-            return;
-          }
-          const newStoreStock = storeProduct.quantity - product.quantity; // Works with float quantities
-          await sellProductFromStore({
-            product_id: storeProduct.product_id._id,
-            quantity: product.quantity,
-          }).unwrap();
+          return;
         }
+        if (storeProduct.quantity < product.quantity) {
+          message.error(
+            `${product.product_name} mahsuloti dokonda yetarli emas!`
+          );
+          return;
+        }
+        const newStoreStock = storeProduct.quantity - product.quantity;
+        await sellProductFromStore({
+          product_id: storeProduct.product_id._id,
+          quantity: product.quantity,
+        }).unwrap();
 
         if (paymentMethod === "qarz") {
           if (!debtorName || !debtorPhone) {
@@ -351,19 +333,8 @@ export default function Kassa() {
               textAlign: "center",
             }}
           >
-            DOKON <br />
+            BOGʻISHAMOL QURILISH MOLLARI DOʻKONI <br />
           </h1>
-          <div className="chek_item3">
-            <h1
-              style={{
-                fontSize: "18px",
-                fontWeight: "bold",
-                textAlign: "center",
-              }}
-            >
-              {/* LOLA JAXON BOZORI A54 */}
-            </h1>
-          </div>
           <div className="chek_item">
             <b>
               Sana:{" "}
@@ -375,8 +346,8 @@ export default function Kassa() {
               <tr>
                 <td>№</td>
                 <td>Tovar</td>
-                <td>O'lchov</td>
                 <td>Soni</td>
+                <td>O'lchov</td>
                 <td>Summa</td>
               </tr>
             </thead>
@@ -385,8 +356,8 @@ export default function Kassa() {
                 <tr key={item._id}>
                   <td style={{ paddingBlock: "20px" }}>{index + 1}</td>
                   <td style={{ paddingBlock: "20px" }}>{item.product_name}</td>
-                  <td style={{ paddingBlock: "20px" }}>{item.count_type}</td>
                   <td style={{ paddingBlock: "20px" }}>{item.quantity}</td>
+                  <td style={{ paddingBlock: "20px" }}>{item.count_type}</td>
                   <td style={{ paddingBlock: "20px" }}>
                     {(item.quantity * item.sell_price).toLocaleString()}
                   </td>
@@ -411,7 +382,11 @@ export default function Kassa() {
             }}
           >
             <span>Xaridingiz uchun raxmat!!!</span> <br />
-            <span>+998 00 000 00 00</span> <br />
+            <span>+99894 300 80 60 </span> <br />
+            <span>+99895 300 80 60 </span> <br />
+          </p>
+          <p>
+            <img width={"200px"} src={bir} alt="" />
           </p>
         </div>
       </Modal>
@@ -487,7 +462,7 @@ export default function Kassa() {
       </div>
 
       <Card
-        title="Kassa"
+        title="."
         bordered={false}
         style={{
           width: "100%",
@@ -542,15 +517,17 @@ export default function Kassa() {
                   record.sell_currency === "usd" ? "$" : "so'm"
                 }`,
             },
-            { title: "Skalad Miqdori", dataIndex: "stock", key: "stock" },
             {
               title: "Dokon Miqdori",
               dataIndex: "quantity",
               key: "quantity",
-              render: (_, record) =>
-                storeProducts.find(
-                  (product) => product.product_id?._id === record._id
-                )?.quantity || 0,
+              render: (_, record) => {
+                const storeQuantity =
+                  storeProducts.find(
+                    (product) => product.product_id?._id === record._id
+                  )?.quantity || 0;
+                return Number(storeQuantity).toFixed(1); // 99.8 ko'rinishida
+              },
             },
             { title: "Shtrix kod", dataIndex: "barcode", key: "barcode" },
             {
@@ -612,10 +589,13 @@ export default function Kassa() {
                   title: "Dokondagi miqdor",
                   dataIndex: "quantity",
                   key: "quantity",
-                  render: (_, record) =>
-                    storeProducts.find(
-                      (product) => product.product_id?._id === record._id
-                    )?.quantity || 0,
+                  render: (_, record) => {
+                    const storeQuantity =
+                      storeProducts.find(
+                        (product) => product.product_id?._id === record._id
+                      )?.quantity || 0;
+                    return Number(storeQuantity).toFixed(1); // 99.8 ko'rinishida
+                  },
                 },
                 {
                   title: "Soni",
@@ -733,17 +713,6 @@ export default function Kassa() {
                 </Form.Item>
               </>
             )}
-
-            <Form.Item label="Joylashuv">
-              <Select
-                value={location}
-                onChange={(value) => setLocation(value)}
-                style={{ width: "100%" }}
-              >
-                <Option value="skalad">Skalad</Option>
-                <Option value="dokon">Dokon</Option>
-              </Select>
-            </Form.Item>
           </Form>
         </Modal>
       </Card>
