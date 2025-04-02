@@ -471,7 +471,7 @@ export const Admin = () => {
     <Layout style={{ minHeight: "100vh" }}>
       <Sider width={200} style={{ background: "#1a2a6c" }}>
         <div style={{ padding: "20px", textAlign: "center", color: "white" }}>
-          <h2>Logo</h2>
+          <h2 className="shu__brend__logo" >Shu brend</h2>  
         </div>
         <Menu
           mode="inline"

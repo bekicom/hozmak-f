@@ -1,6 +1,6 @@
 import React, { memo } from "react";
 import "./login.css";
-import { json, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 export const Login = memo(() => {
@@ -12,26 +12,17 @@ export const Login = memo(() => {
 
     try {
       const res = await axios.post(
- 
         "https://hozmak-b.vercel.app/api/login",
-        // "http://localhost:8080/api/login",
         value
       );
-      console.log(res.data);
-
-      const token = res.data.token;
-      const acsess = res.data.success;
-      const role = res.data.role;
+      const { token, success, role } = res.data;
 
       localStorage.setItem("access_token", token);
-      localStorage.setItem("acsess", JSON.stringify(acsess));
+      localStorage.setItem("acsess", JSON.stringify(success));
       localStorage.setItem("role", role);
 
       window.location.reload();
-      navigate("/");
-      if (role === "admin") {
-        navigate("/admin");
-      }
+      navigate(role === "admin" ? "/admin" : "/");
     } catch (error) {
       console.error("API xatosi:", error.response?.data || error.message);
     }
@@ -40,24 +31,28 @@ export const Login = memo(() => {
   return (
     <div className="login">
       <form className="login-form" onSubmit={handleSubmit}>
-        <label>
+        <h1 className="login-title">Assalomu aleykum</h1>
+        <label className="input-wrapper">
           <input
             type="text"
             placeholder="Login"
             autoComplete="off"
             name="login"
+            required
           />
         </label>
-
-        <label>
-          <input type="password" placeholder="Password" name="password" />
+        <label className="input-wrapper">
+          <input
+            type="password"
+            placeholder="Password"
+            name="password"
+            required
+          />
         </label>
-
-        <label>
-          <input type="submit" value="Kirish" />
-        </label>
+        <button type="submit" className="login-button">
+          Sign In
+        </button>
       </form>
     </div>
   );
 });
-// 
