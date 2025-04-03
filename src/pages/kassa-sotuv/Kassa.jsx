@@ -12,6 +12,7 @@ import {
   DatePicker,
   AutoComplete,
 } from "antd";
+import { CalculatorOutlined } from "@ant-design/icons"; // Kalkulyator ikonkasi uchun
 import {
   useGetAllProductsQuery,
   useUpdateProductMutation,
@@ -36,6 +37,110 @@ import bir from "../../assets/qr_telegram_ilyosxon (1).png";
 import SotuvTarix from "../sotuv-tarix/Sotuv_tarix";
 const { Option } = Select;
 
+// Kalkulyator komponenti
+function Calculator() {
+  const [display, setDisplay] = useState("0");
+  const [operation, setOperation] = useState(null);
+  const [prevValue, setPrevValue] = useState(null);
+
+  const handleNumberClick = (num) => {
+    if (display === "0") {
+      setDisplay(num);
+    } else {
+      setDisplay(display + num);
+    }
+  };
+
+  const handleOperationClick = (op) => {
+    if (prevValue === null) {
+      setPrevValue(parseFloat(display));
+      setOperation(op);
+      setDisplay("0");
+    } else {
+      calculateResult(op);
+    }
+  };
+
+  const calculateResult = (newOp = null) => {
+    const currentValue = parseFloat(display);
+    let result;
+
+    switch (operation) {
+      case "+":
+        result = prevValue + currentValue;
+        break;
+      case "-":
+        result = prevValue - currentValue;
+        break;
+      case "*":
+        result = prevValue * currentValue;
+        break;
+      case "/":
+        result = prevValue / currentValue;
+        break;
+      default:
+        return;
+    }
+
+    setDisplay(result.toString());
+    setPrevValue(result);
+    setOperation(newOp);
+  };
+
+  const handleEqualClick = () => {
+    calculateResult();
+    setPrevValue(null);
+    setOperation(null);
+  };
+
+  const handleClearClick = () => {
+    setDisplay("0");
+    setOperation(null);
+    setPrevValue(null);
+  };
+
+  return (
+    <div style={{ padding: "10px", textAlign: "center" }}>
+      <Input
+        value={display}
+        readOnly
+        style={{ marginBottom: "10px", textAlign: "right", fontSize: "20px" }}
+      />
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: "5px",
+        }}
+      >
+        <Button onClick={() => handleNumberClick("7")}>7</Button>
+        <Button onClick={() => handleNumberClick("8")}>8</Button>
+        <Button onClick={() => handleNumberClick("9")}>9</Button>
+        <Button onClick={() => handleOperationClick("/")}>/</Button>
+
+        <Button onClick={() => handleNumberClick("4")}>4</Button>
+        <Button onClick={() => handleNumberClick("5")}>5</Button>
+        <Button onClick={() => handleNumberClick("6")}>6</Button>
+        <Button onClick={() => handleOperationClick("*")}>*</Button>
+
+        <Button onClick={() => handleNumberClick("1")}>1</Button>
+        <Button onClick={() => handleNumberClick("2")}>2</Button>
+        <Button onClick={() => handleNumberClick("3")}>3</Button>
+        <Button onClick={() => handleOperationClick("-")}>-</Button>
+
+        <Button onClick={() => handleNumberClick("0")}>0</Button>
+        <Button onClick={() => handleNumberClick(".")}>.</Button>
+        <Button onClick={handleEqualClick}>=</Button>
+        <Button onClick={() => handleOperationClick("+")}>+</Button>
+
+        <Button onClick={handleClearClick} style={{ gridColumn: "span 4" }}>
+          Tozalash
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function Kassa() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -48,6 +153,7 @@ export default function Kassa() {
   const [sotuvModalVisible, setSotuvModalVisible] = useState(false);
   const [xarajatlarModalVisible, setXarajatlarModalVisible] = useState(false);
   const [vazvratModalVisible, setVazvratModalVisible] = useState(false);
+  const [isCalculatorVisible, setIsCalculatorVisible] = useState(false); // Kalkulyator uchun state
   const receiptRef = useRef();
   const [debtDueDate, setDebtDueDate] = useState(null);
   const { data: products, isLoading } = useGetAllProductsQuery();
@@ -302,6 +408,7 @@ export default function Kassa() {
 
   return (
     <div className="kassa-container">
+      {/* Chek modal */}
       <Modal
         open={chekModal}
         style={{ display: "flex", justifyContent: "center" }}
@@ -391,6 +498,7 @@ export default function Kassa() {
         </div>
       </Modal>
 
+      {/* Qarzdorlar modal */}
       <Modal
         title="Qarzdorlar"
         open={qarzdorModalVisible}
@@ -401,6 +509,7 @@ export default function Kassa() {
         <Qarzdor />
       </Modal>
 
+      {/* Xarajatlar modal */}
       <Modal
         title="Xarajatlar"
         open={xarajatlarModalVisible}
@@ -411,6 +520,7 @@ export default function Kassa() {
         <Xarajatlar />
       </Modal>
 
+      {/* Vazvrat modal */}
       <Modal
         title="Vazvrat tavarlar"
         open={vazvratModalVisible}
@@ -420,6 +530,8 @@ export default function Kassa() {
       >
         <Vazvrat />
       </Modal>
+
+      {/* Sotuv tarixi modal */}
       <Modal
         title="Sotish"
         open={sotuvModalVisible}
@@ -430,6 +542,18 @@ export default function Kassa() {
         <SotuvTarix />
       </Modal>
 
+      {/* Kalkulyator modal */}
+      <Modal
+        title="Kalkulyator"
+        open={isCalculatorVisible}
+        onCancel={() => setIsCalculatorVisible(false)}
+        footer={null}
+        width="300px"
+      >
+        <Calculator />
+      </Modal>
+
+      {/* Kassa header */}
       <div className="kassa-header">
         <Button
           type="primary"
@@ -459,8 +583,17 @@ export default function Kassa() {
         >
           Sotuv Tarixi
         </Button>
+        <Button
+          type="primary"
+          icon={<CalculatorOutlined />}
+          onClick={() => setIsCalculatorVisible(true)}
+          style={{ marginRight: 10 }}
+        >
+          Kalkulyator
+        </Button>
       </div>
 
+      {/* Asosiy kassa interfeysi */}
       <Card
         title="."
         bordered={false}
@@ -526,7 +659,7 @@ export default function Kassa() {
                   storeProducts.find(
                     (product) => product.product_id?._id === record._id
                   )?.quantity || 0;
-                return Number(storeQuantity).toFixed(1); // 99.8 ko'rinishida
+                return Number(storeQuantity).toFixed(1);
               },
             },
             { title: "Shtrix kod", dataIndex: "barcode", key: "barcode" },
@@ -594,7 +727,7 @@ export default function Kassa() {
                       storeProducts.find(
                         (product) => product.product_id?._id === record._id
                       )?.quantity || 0;
-                    return Number(storeQuantity).toFixed(1); // 99.8 ko'rinishida
+                    return Number(storeQuantity).toFixed(1);
                   },
                 },
                 {
@@ -664,6 +797,7 @@ export default function Kassa() {
           </div>
         )}
 
+        {/* To'lov usuli modal */}
         <Modal
           title="To'lov usulini tanlang"
           visible={isModalVisible}
