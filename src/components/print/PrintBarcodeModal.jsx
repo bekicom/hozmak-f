@@ -12,15 +12,15 @@ const PrintBarcodeModal = ({
   const barcodeRef = useRef(null);
 
   useEffect(() => {
-    if (visible && barcode) {
+    if (visible && barcode && barcodeRef.current) {
       try {
         JsBarcode(barcodeRef.current, barcode, {
           format: "CODE128",
-          width: 2, // Har bir chiziqning kengligi (pikselda)
-          height: 70, // Shtrix kodning balandligi (pikselda)
-          displayValue: true, // Shtrix kod ostida raqam ko'rsatish
-          fontSize: 14, // Raqamning shrift o'lchami
-          margin: 5, // Chegaralar
+          width: 2,
+          height: 70,
+          displayValue: true,
+          fontSize: 14,
+          margin: 5,
         });
       } catch (error) {
         console.error("Error generating barcode:", error);
@@ -29,12 +29,16 @@ const PrintBarcodeModal = ({
   }, [visible, barcode]);
 
   useEffect(() => {
-    console.log("Modal holati o'zgardi:", visible);
-  }, [visible]);
+    console.log("Modal props:", { visible, barcode, productName, price }); // Debug log
+  }, [visible, barcode, productName, price]);
 
   const handlePrint = () => {
-    const printWindow = window.open("", "_blank"); // Yangi oyna ochish
+    const printWindow = window.open("", "_blank");
     const printContent = barcodeRef.current.outerHTML;
+
+    const formattedPrice = price
+      ? `${price.toLocaleString()} so'm`
+      : "Narx mavjud emas";
 
     printWindow.document.write(`
       <html>
@@ -52,15 +56,15 @@ const PrintBarcodeModal = ({
               text-align: center;
             }
             svg { 
-              width: 30mm !important; /* 3 sm kenglik */
-              height: 20mm !important; /* 2 sm balandlik */
+              width: 30mm !important;
+              height: 20mm !important;
             }
             .product-info {
               margin-top: 5px;
               font-size: 12px;
               display: flex;
               justify-content: center;
-              gap: 10px; /* Bo'shliq product name va price o'rtasida */
+              gap: 10px;
             }
             .product-name {
               font-weight: bold;
@@ -76,9 +80,7 @@ const PrintBarcodeModal = ({
             <div class="product-name">${
               productName || "Noma'lum mahsulot"
             }</div>
-            <div class="product-price">${
-              price ? price.toLocaleString() + " so'm" : "Narx mavjud emas"
-            }</div>
+            <div class="product-price">${formattedPrice}</div>
           </div>
         </body>
       </html>
@@ -89,9 +91,13 @@ const PrintBarcodeModal = ({
     printWindow.close();
   };
 
+  const formattedPrice = price
+    ? `${price.toLocaleString()} so'm`
+    : "Narx mavjud emas";
+
   return (
     <Modal
-      title=""
+      title="Shtrix kodni chop etish"
       open={visible}
       onCancel={onCancel}
       footer={[
@@ -99,7 +105,7 @@ const PrintBarcodeModal = ({
           Bekor qilish
         </Button>,
         <Button key="submit" type="primary" onClick={handlePrint}>
-          Chop etish
+          Chop Angliyada chop etish
         </Button>,
       ]}
     >
@@ -111,15 +117,13 @@ const PrintBarcodeModal = ({
             fontSize: 12,
             display: "flex",
             justifyContent: "center",
-            gap: 10, // Bo'shliq product name va price o'rtasida
+            gap: 10,
           }}
         >
           <div style={{ fontWeight: "bold" }}>
-            {productName || "Noma'lum mahsulot"}
+            {/* {productName || "Noma'lum mahsulot"} */}
           </div>
-          <div>
-            {price ? price.toLocaleString() + " so'm" : "Narx mavjud emas"}
-          </div>
+          {/* <div>{formattedPrice}</div> */}
         </div>
       </div>
     </Modal>
