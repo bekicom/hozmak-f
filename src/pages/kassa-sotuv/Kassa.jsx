@@ -493,7 +493,8 @@ export default function Kassa() {
             <span>+99895 300 80 60 </span> <br />
           </p>
           <p>
-            <img width={"200px"} src={bir} alt="" />
+            {/* <img width={"200px"} src={bir} alt="" /> */}
+            t.me/bogishamol_qurilish_market
           </p>
         </div>
       </Modal>
