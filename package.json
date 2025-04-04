@@ -22,6 +22,7 @@
     "moment-timezone": "^0.5.47",
     "notistack": "^3.0.1",
     "react": "^18.2.0",
+    "react-barcode": "^1.6.1",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.52.2",

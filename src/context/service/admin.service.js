@@ -5,11 +5,11 @@ const baseQuery = fetchBaseQuery({
   // baseUrl: "https://lola-crm-server.vercel.app/api",
   // baseUrl: "https://lola-crm-server.vercel.app/api",
   // baseUrl: "https://zapchast-test-bekent.vercel.app/api",
-  baseUrl: "https://lola-avto-zapchast-dizayin-b.vercel.app/api", 
+  // baseUrl: "https://lola-avto-zapchast-dizayin-b.vercel.app/api",
   // baseUrl:"https://lola-avto-zapchast-dizayin-b.vercel.app/api/",
+  // baseUrl: "https://hozmak-b.vercel.app/api",
   
-  
-
+  baseUrl: "http://localhost:8080/api",
 
   prepareHeaders: (headers, { getState }) => {
     const token = localStorage.getItem("access_token");
