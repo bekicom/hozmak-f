@@ -263,16 +263,16 @@ export default function StoreItem() {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "start",
+                alignItems: "center",
                 justifyContent: "center",
                 padding: "0px",
                 width: "300px",
+                height: "200px",
                 paddingTop: "10px",
                 border: "1px solid #000",
-                paddingLeft: "40px",
               }}
             >
-              <div style={{ textAlign: "center", marginBottom: "2px" }}>
+              <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: "12px", fontWeight: "bold" }}>
                   {printData.name}
                 </div>
