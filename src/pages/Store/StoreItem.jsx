@@ -265,23 +265,24 @@ export default function StoreItem() {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: "10px",
+                padding: "0px",
                 width: "300px",
+                paddingTop: "10px",
               }}
             >
-              <div style={{ textAlign: "center", marginBottom: "10px" }}>
+              <div style={{ textAlign: "center", marginBottom: "2px" }}>
                 <div style={{ fontSize: "12px", fontWeight: "bold" }}>
                   {printData.name}
                 </div>
                 <div style={{ fontSize: "12px" }}>{printData.model}</div>
-                <div style={{ fontSize: "14px", fontWeight: "bold" }}>
+                <div style={{ fontSize: "12px", fontWeight: "bold" }}>
                   {printData.price}
                 </div>
               </div>
               <Barcode
                 value={printData.barcode}
                 width={3}
-                height={50}
+                height={30}
                 displayValue={false}
               />
               <div style={{ marginTop: "5px", fontSize: "10px" }}>
