@@ -17,7 +17,7 @@ const PrintBarcodeModal = ({
         JsBarcode(barcodeRef.current, barcode, {
           format: "CODE128",
           width: 2, // Har bir chiziqning kengligi (pikselda)
-          height: 70, // Shtrix kodning balandligi (pikselda)
+          height: 40, // Shtrix kodning balandligi (pikselda)
           displayValue: true, // Shtrix kod ostida raqam ko'rsatish
           fontSize: 14, // Raqamning shrift o'lchami
           margin: 5, // Chegaralar
@@ -53,7 +53,7 @@ const PrintBarcodeModal = ({
             }
             svg { 
               width: 30mm !important; /* 3 sm kenglik */
-              height: 20mm !important; /* 2 sm balandlik */
+              height: 15mm !important; /* 2 sm balandlik */
             }
             .product-info {
               margin-top: 5px;
