@@ -267,7 +267,7 @@ export default function StoreItem() {
                 justifyContent: "center",
                 padding: "0px",
                 width: "300px",
-                height: "200px",
+                height: "150px",
                 paddingTop: "10px",
                 border: "1px solid #000",
               }}
