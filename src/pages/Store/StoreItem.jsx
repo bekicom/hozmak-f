@@ -283,7 +283,7 @@ export default function StoreItem() {
               </div>
               <Barcode
                 value={printData.barcode}
-                width={3}
+                width={2}
                 height={30}
                 displayValue={false}
               />
