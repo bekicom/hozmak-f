@@ -19,31 +19,31 @@ const EditProductModal = ({ visible, onCancel, product, usdRate, isStore }) => {
   const [purchaseSum, setPurchaseSum] = useState(true);
   const [sellSum, setSellSum] = useState(true);
 
-  useEffect(() => {
-    if (product) {
-      setEditingProduct(product);
+ useEffect(() => {
+   if (product) {
+     setEditingProduct(product);
 
-      // USD/UZS konvertatsiya — xavfsiz ishlov
-      const purchasePrice =
-        product.purchase_currency === "uzs"
-          ? product.purchase_price ?? 0
-          : (product.purchase_price ?? 0) / (usdRate || 1);
+     const purchasePrice =
+       product.purchase_currency === "uzs"
+         ? product.purchase_price ?? 0
+         : product.purchase_price ?? 0; // USD bo‘lsa hech narsa qilmang
 
-      const sellPrice =
-        product.sell_currency === "uzs"
-          ? product.sell_price ?? 0
-          : (product.sell_price ?? 0) / (usdRate || 1);
+     const sellPrice =
+       product.sell_currency === "uzs"
+         ? product.sell_price ?? 0
+         : product.sell_price ?? 0; // USD bo‘lsa hech narsa qilmang
 
-      editForm.setFieldsValue({
-        ...product,
-        purchase_price: purchasePrice,
-        sell_price: sellPrice,
-      });
+     editForm.setFieldsValue({
+       ...product,
+       purchase_price: purchasePrice,
+       sell_price: sellPrice,
+     });
 
-      setPurchaseSum(product.purchase_currency === "uzs");
-      setSellSum(product.sell_currency === "uzs");
-    }
-  }, [product, usdRate, editForm]);
+     setPurchaseSum(product.purchase_currency === "uzs");
+     setSellSum(product.sell_currency === "uzs");
+   }
+ }, [product, usdRate, editForm]);
+
 
   const handleEditFinish = async (values) => {
     try {

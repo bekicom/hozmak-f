@@ -48,9 +48,9 @@ export default function StoreItem() {
     refetchStoreProducts();
   }, [stockFilter]);
 
-  const sortedStoreProducts = [...(storeProducts || [])].sort(
-    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-  );
+  const sortedStoreProducts = [...(storeProducts || [])]
+    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+    .reverse();
 
   const filteredStoreProducts = sortedStoreProducts
     .filter((product) => {
@@ -356,7 +356,7 @@ export default function StoreItem() {
         loading={storeLoading}
         columns={columns}
         rowKey="_id"
-        pagination={{ pageSize: 20 }}
+        pagination={{ pageSize: 20, defaultCurrent: 1 }}
         scroll={{ x: "max-content" }}
       />
 
