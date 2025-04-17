@@ -1,36 +1,64 @@
 import React, { useState, useEffect } from "react";
-import { Button, Modal, Form, Input, Row, Col, message, Select, Switch } from "antd";
+import {
+  Button,
+  Modal,
+  Form,
+  Input,
+  Row,
+  Col,
+  message,
+  Select,
+  Switch,
+} from "antd";
 import { useUpdateProductMutation } from "../../context/service/addproduct.service";
 
 const EditProductModal = ({ visible, onCancel, product, usdRate, isStore }) => {
-  const [editForm] = Form.useForm(); // Tahrirlash formasi hook
-  const [updateProduct] = useUpdateProductMutation(); // Mahsulotni yangilash uchun API chaqiruv hook
-  const [editingProduct, setEditingProduct] = useState(product); // Hozir tahrirlanayotgan mahsulot
-  const [purchaseSum, setPurchaseSum] = useState(true)
-  const [sellSum, setSellSum] = useState(true)
+  const [editForm] = Form.useForm();
+  const [updateProduct] = useUpdateProductMutation();
+  const [editingProduct, setEditingProduct] = useState(product);
+  const [purchaseSum, setPurchaseSum] = useState(true);
+  const [sellSum, setSellSum] = useState(true);
 
   useEffect(() => {
     if (product) {
       setEditingProduct(product);
+
+      // USD/UZS konvertatsiya — xavfsiz ishlov
+      const purchasePrice =
+        product.purchase_currency === "uzs"
+          ? product.purchase_price ?? 0
+          : (product.purchase_price ?? 0) / (usdRate || 1);
+
+      const sellPrice =
+        product.sell_currency === "uzs"
+          ? product.sell_price ?? 0
+          : (product.sell_price ?? 0) / (usdRate || 1);
+
       editForm.setFieldsValue({
         ...product,
-        purchase_price: product.purchase_price,
-        sell_price: product.sell_price,
+        purchase_price: purchasePrice,
+        sell_price: sellPrice,
       });
+
       setPurchaseSum(product.purchase_currency === "uzs");
       setSellSum(product.sell_currency === "uzs");
     }
   }, [product, usdRate, editForm]);
 
   const handleEditFinish = async (values) => {
-    console.log(values);
-
     try {
       if (isStore) {
-        delete values.stock
+        delete values.stock;
       }
-      const purchasePriceSom = values.purchase_price;
-      const sellPriceSom = values.sell_price;
+
+      const purchasePriceSom = purchaseSum
+        ? values.purchase_price ?? 0
+        : (values.purchase_price ?? 0) * (usdRate || 1);
+
+      const sellPriceSom = sellSum
+        ? values.sell_price ?? 0
+        : (values.sell_price ?? 0) * (usdRate || 1);
+
       await updateProduct({
         id: editingProduct._id,
         ...values,
@@ -39,6 +67,7 @@ const EditProductModal = ({ visible, onCancel, product, usdRate, isStore }) => {
         purchase_price: purchasePriceSom,
         sell_price: sellPriceSom,
       }).unwrap();
+
       message.success("Mahsulot muvaffaqiyatli tahrirlandi!");
       onCancel();
       editForm.resetFields();
@@ -61,7 +90,7 @@ const EditProductModal = ({ visible, onCancel, product, usdRate, isStore }) => {
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
-              label="Mahsulot nomi1"
+              label="Mahsulot nomi"
               name="product_name"
               rules={[{ required: true, message: "Majburiy maydon!" }]}
             >
@@ -120,17 +149,20 @@ const EditProductModal = ({ visible, onCancel, product, usdRate, isStore }) => {
           </Col>
         </Row>
         <Row gutter={16} style={{ marginBottom: "12px" }}>
-          <Col style={{ display: "flex", gap: "6px" }} span={12}>
+          <Col
+            style={{ display: "flex", gap: "6px", alignItems: "center" }}
+            span={12}
+          >
             <p>USD</p>
-            <Switch
-              checked={purchaseSum}
-              onChange={(value) => setPurchaseSum(value)}
-            />
+            <Switch checked={purchaseSum} onChange={setPurchaseSum} />
             <p>UZS</p>
           </Col>
-          <Col style={{ display: "flex", gap: "6px" }} span={12}>
+          <Col
+            style={{ display: "flex", gap: "6px", alignItems: "center" }}
+            span={12}
+          >
             <p>USD</p>
-            <Switch checked={sellSum} onChange={(value) => setSellSum(value)} />
+            <Switch checked={sellSum} onChange={setSellSum} />
             <p>UZS</p>
           </Col>
         </Row>
@@ -158,7 +190,6 @@ const EditProductModal = ({ visible, onCancel, product, usdRate, isStore }) => {
               </Select>
             </Form.Item>
           </Col>
-
           <Col span={12}>
             <Form.Item
               label="Shtrix kod"
@@ -169,7 +200,6 @@ const EditProductModal = ({ visible, onCancel, product, usdRate, isStore }) => {
             </Form.Item>
           </Col>
         </Row>
-
         <Form.Item>
           <Button type="primary" htmlType="submit" block>
             Saqlash

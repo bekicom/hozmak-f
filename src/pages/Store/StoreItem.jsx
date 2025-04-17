@@ -27,50 +27,42 @@ export default function StoreItem() {
     isLoading: storeLoading,
     refetch: refetchStoreProducts,
   } = useGetStoreProductsQuery();
-  const { data: allProducts, isLoading: productsLoading } =
-    useGetAllProductsQuery();
+
+  const { data: allProducts } = useGetAllProductsQuery();
   const [addProductToStore] = useAddProductToStoreMutation();
   const [removeProductFromStore] = useRemoveProductFromStoreMutation();
   const [updateQuantity] = useUpdateQuantityMutation();
   const [updateProduct] = useUpdateProductMutation();
   const [searchQuery, setSearchQuery] = useState("");
-  const [barcodeSearch, setBarcodeSearch] = useState(""); // Добавлено для поиска по штрих-коду
+  const [barcodeSearch, setBarcodeSearch] = useState("");
   const [stockFilter, setStockFilter] = useState("newlyAdded");
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [quantity, setQuantity] = useState(null);
   const [selectedQuantity, setSelectedQuantity] = useState("");
   const [quantityModal, setQuantityModal] = useState(false);
   const { register, handleSubmit, reset } = useForm();
   const [printData, setPrintData] = useState(null);
   const printRef = useRef();
 
-  const refetchProducts = () => {
-    refetchStoreProducts();
-  };
-
   useEffect(() => {
     refetchStoreProducts();
   }, [stockFilter]);
 
-  const sortedStoreProducts = [...(storeProducts || [])]
-    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-    .reverse();
+  const sortedStoreProducts = [...(storeProducts || [])].sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  );
 
   const filteredStoreProducts = sortedStoreProducts
     .filter((product) => {
       const query = searchQuery.toLowerCase();
       const barcodeQuery = barcodeSearch.toLowerCase();
-      const matchesModel = product?.product_id?.model
-        .toLowerCase()
-        .includes(query);
-      const matchesName = product?.product_id?.product_name
-        .toLowerCase()
-        .includes(query);
-      const matchesBarcode = product?.product_id?.barcode
-        .toLowerCase()
-        .includes(barcodeQuery);
-      return (matchesModel || matchesName) && (!barcodeQuery || matchesBarcode);
+      const name = product?.product_id?.product_name?.toLowerCase() || "";
+      const model = product?.product_id?.model?.toLowerCase() || "";
+      const barcode = product?.product_id?.barcode?.toLowerCase() || "";
+      return (
+        (name.includes(query) || model.includes(query)) &&
+        (!barcodeQuery || barcode.includes(barcodeQuery))
+      );
     })
     .filter((product) => {
       if (stockFilter === "all") return true;
@@ -82,34 +74,33 @@ export default function StoreItem() {
     });
 
   const preparePrintData = (product) => {
+    const priceVal = product.product_id?.sell_price ?? 0;
+    const priceCurrency =
+      product.product_id?.sell_currency === "usd" ? "$" : "so'm";
+
     return {
-      name: product.product_id.product_name,
-      model: product.product_id.model,
-      price: `${product.product_id.sell_price.toFixed(0)}${
-        product.product_id.sell_currency === "usd" ? "$" : "so'm"
-      }`,
-      barcode: product.product_id.barcode,
+      name: product.product_id?.product_name ?? "Noma'lum",
+      model: product.product_id?.model ?? "",
+      price: `${priceVal.toFixed(0)}${priceCurrency}`,
+      barcode: product.product_id?.barcode ?? "0000000000000",
     };
   };
 
   const columns = [
     {
       title: "Maxsulot nomi",
-      dataIndex: "product_name",
       key: "product_name",
-      render: (text, item) => item?.product_id?.product_name,
+      render: (_, item) => item?.product_id?.product_name,
     },
     {
       title: "Modeli",
-      dataIndex: "modeli",
       key: "modeli",
-      render: (text, item) => item?.product_id?.model,
+      render: (_, item) => item?.product_id?.model,
     },
     {
       title: "Miqdor",
-      dataIndex: "quantity",
       key: "quantity",
-      render: (text, item) => (
+      render: (_, item) => (
         <div
           style={{
             backgroundColor:
@@ -129,39 +120,38 @@ export default function StoreItem() {
     },
     {
       title: "Olish narxi",
-      dataIndex: "purchase_price",
       key: "purchase_price",
-      render: (_, record) =>
-        `${record.product_id.purchase_price.toFixed(0)}${
-          record.product_id.purchase_currency === "usd" ? "$" : "so'm"
-        }`,
+      render: (_, record) => {
+        const val = record.product_id?.purchase_price ?? 0;
+        const currency =
+          record.product_id?.purchase_currency === "usd" ? "$" : "so'm";
+        return `${val.toFixed(0)}${currency}`;
+      },
     },
     {
       title: "Sotish narxi",
-      dataIndex: "sell_price",
       key: "sell_price",
-      render: (_, record) =>
-        `${record.product_id.sell_price.toFixed(0)}${
-          record.product_id.sell_currency === "usd" ? "$" : "so'm"
-        }`,
+      render: (_, record) => {
+        const val = record.product_id?.sell_price ?? 0;
+        const currency =
+          record.product_id?.sell_currency === "usd" ? "$" : "so'm";
+        return `${val.toFixed(0)}${currency}`;
+      },
     },
     {
       title: "O'lchov birligi",
-      dataIndex: "count_type",
       key: "count_type",
-      render: (text, item) => item?.product_id?.count_type,
+      render: (_, item) => item?.product_id?.count_type,
     },
     {
-      title: "kimdan kelgan",
-      dataIndex: "kimdan_kelgan",
+      title: "Kimdan kelgan",
       key: "kimdan_kelgan",
-      render: (text, item) => item?.product_id?.kimdan_kelgan,
+      render: (_, item) => item?.product_id?.kimdan_kelgan,
     },
     {
       title: "Shtrix kod",
-      dataIndex: "barcode",
       key: "barcode",
-      render: (text, item) => (
+      render: (_, item) => (
         <div>
           <span>{item?.product_id?.barcode}</span>
           <ReactToPrint
@@ -218,9 +208,7 @@ export default function StoreItem() {
     },
   ];
 
-  const handleFilterChange = (value) => {
-    setStockFilter(value);
-  };
+  const handleFilterChange = (value) => setStockFilter(value);
 
   const showEditModal = (product) => {
     setEditingProduct(product.product_id);
@@ -230,32 +218,31 @@ export default function StoreItem() {
   const handleEditComplete = () => {
     setIsEditModalVisible(false);
     setEditingProduct(null);
-    refetchProducts();
+    refetchStoreProducts();
   };
 
   const handleDelete = async (id) => {
     try {
       await removeProductFromStore(id).unwrap();
       message.success("Mahsulot muvaffaqiyatli o'chirildi!");
-      refetchProducts();
+      refetchStoreProducts();
     } catch (error) {
       message.error("Xatolik yuz berdi. Iltimos qayta urinib ko'ring.");
     }
   };
 
-  function submitModal(data) {
+  const submitModal = (data) => {
     updateQuantity({ quantity: data.quantity, id: selectedQuantity }).then(
-      (res) => {
+      () => {
         message.success("Mahsulot muvaffaqiyatli o'zgartirildi!");
         setQuantityModal(false);
-        refetchProducts();
+        refetchStoreProducts();
       }
     );
-  }
+  };
 
   return (
     <div>
-      {/* Hidden printable content */}
       <div style={{ display: "none" }}>
         <div ref={printRef}>
           {printData && (
@@ -362,7 +349,8 @@ export default function StoreItem() {
           <Option value="outOfStock">Tugagan mahsulotlar</Option>
         </Select>
       </div>
-      <AddProductToStore refetchProducts={refetchProducts} />
+
+      <AddProductToStore refetchProducts={refetchStoreProducts} />
       <Table
         dataSource={filteredStoreProducts}
         loading={storeLoading}
@@ -371,11 +359,12 @@ export default function StoreItem() {
         pagination={{ pageSize: 20 }}
         scroll={{ x: "max-content" }}
       />
+
       <EditProductModal
         visible={isEditModalVisible}
         onCancel={handleEditComplete}
         product={editingProduct}
-        onSave={refetchProducts}
+        onSave={refetchStoreProducts}
         isStore={true}
       />
     </div>
